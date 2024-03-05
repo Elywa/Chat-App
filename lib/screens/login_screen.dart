@@ -1,101 +1,167 @@
+import 'package:chat_app/constants.dart';
+import 'package:chat_app/helper/show_snack_bar.dart';
+import 'package:chat_app/screens/chat_screen.dart';
 import 'package:chat_app/screens/register_screen.dart';
 import 'package:chat_app/widgets/custom_botton.dart';
 import 'package:chat_app/widgets/custom_text_field.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  LoginScreen({Key? key}) : super(key: key);
+  static String id = 'LoginScreen';
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  String? email;
+
+  String? password;
+
+  bool isLoading = false;
+
+  GlobalKey<FormState> formKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xff274460),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Column(
-          children: [
-            const Spacer(
-              flex: 1,
-            ),
-            Image.asset('assets/images/scholar.png'),
-            const Text(
-              'Scholar Chat',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontFamily: 'Pacifico',
-              ),
-            ),
-            const Spacer(
-              flex: 1,
-            ),
-            const Row(
+    return ModalProgressHUD(
+      inAsyncCall: isLoading,
+      child: Scaffold(
+        backgroundColor: kPrimaryColor,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Form(
+            key: formKey,
+            child: ListView(
               children: [
-                Text(
-                  'Login',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
+                const SizedBox(
+                  height: 55,
                 ),
-              ],
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            CustomTextField(
-              hint: 'Email',
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            CustomTextField(
-              hint: 'Password',
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            const CustomButton(text: 'Sign In'),
-            const SizedBox(
-              height: 15,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "don't have an account !  ",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
+                Image.asset(
+                  'assets/images/scholar.png',
+                  height: 100,
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return RegisterScreen();
-                        },
+                const SizedBox(
+                  height: 10,
+                ),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Scholar Chat',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontFamily: 'Pacifico',
                       ),
-                    );
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 45,
+                ),
+                const Row(
+                  children: [
+                    Text(
+                      'Login',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                CustomTextFormField(
+                  onChanged: (data) {
+                    email = data;
                   },
-                  child: const Text(
-                    " Sign Up",
+                  hint: 'Email',
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                CustomTextFormField(
+                  hint: 'Password',
+                  onChanged: (data) {
+                    password = data;
+                  },
+                ),
+                const SizedBox(
+                  height: 25,
+                ),
+                CustomButton(
+                  text: 'Sign In',
+                  ontTap: () async {
+                    if (formKey.currentState!.validate()) {
+                      isLoading = true;
+                      setState(() {});
+                      try {
+                        await signInUser();
+                        Navigator.pushNamed(context, ChatScreen.id);
+                        // showSnackBar(context, 'Success');
+                        // print(context);
+                      } on FirebaseAuthException catch (e) {
+                        if (e.code == 'user-not-found') {
+                          showSnackBar(context, 'No user found for that email');
+                        } else if (e.code == 'wrong-password') {
+                          showSnackBar(context,
+                              'Wrong password provided for that user.');
+                        }
+                      } catch (e) {
+                        showSnackBar(context, 'Error : ${e.toString()}');
+                      }
+                      isLoading = false;
+                      setState(() {});
+                    }
+                  },
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                const Center(
+                  child: Text(
+                    "don't have an account !",
                     style: TextStyle(
-                      color: Color(0xffC7EDE6),
-                      fontSize: 22,
+                      color: Colors.white,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, RegisterScreen.id);
+                    },
+                    child: const Text(
+                      " Sign Up",
+                      style: TextStyle(
+                        color: Color(0xffC7EDE6),
+                        fontSize: 22,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            const Spacer(
-              flex: 2,
-            ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  Future<void> signInUser() async {
+    final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email!,
+      password: password!,
     );
   }
 }
