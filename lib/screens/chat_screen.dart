@@ -12,10 +12,12 @@ class ChatScreen extends StatelessWidget {
   CollectionReference messages =
       FirebaseFirestore.instance.collection(kMessagesCollection);
   TextEditingController controller = TextEditingController();
+  final scrollcontroller = ScrollController();
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<QuerySnapshot>(
-        future: messages.get(),
+    var email = ModalRoute.of(context)!.settings.arguments;
+    return StreamBuilder<QuerySnapshot>(
+        stream: messages.orderBy(kTime, descending: true).snapshots(),
         builder: (context, snapShot) {
           isLodaing = true;
           if (snapShot.hasData) {
@@ -49,9 +51,16 @@ class ChatScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ListView.builder(
+                      reverse: true,
+                      controller: scrollcontroller,
                       itemCount: messagesList.length,
                       itemBuilder: (context, index) {
-                        return ChatBubble(message: messagesList[index],);
+                        return messagesList[index].id == email
+                            ? ChatBubble(
+                                message: messagesList[index],
+                              )
+                            : ChatBubbleOfAnotherUser(
+                                message: messagesList[index]);
                       },
                     ),
                   ),
@@ -61,11 +70,14 @@ class ChatScreen extends StatelessWidget {
                       controller: controller,
                       onSubmitted: (data) {
                         messages.add(
-                          {
-                            kmessage: data,
-                          },
+                          {kmessage: data, kTime: DateTime.now(), "id": email},
                         );
                         controller.clear();
+                        scrollcontroller.animateTo(
+                          0,
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.fastOutSlowIn,
+                        );
                       },
                       decoration: InputDecoration(
                         hintText: 'Send Message',

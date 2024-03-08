@@ -8,6 +8,36 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        padding:
+            const EdgeInsets.only(left: 16, right: 20, top: 20, bottom: 20),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+            bottomLeft: Radius.circular(32),
+          ),
+          color: kPrimaryColor,
+        ),
+        child: Text(
+          message.text,
+          style: const TextStyle(
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChatBubbleOfAnotherUser extends StatelessWidget {
+  const ChatBubbleOfAnotherUser({super.key, required this.message});
+  final Message message;
+  @override
+  Widget build(BuildContext context) {
+    return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -19,7 +49,7 @@ class ChatBubble extends StatelessWidget {
             topRight: Radius.circular(32),
             bottomRight: Radius.circular(32),
           ),
-          color: kPrimaryColor,
+          color: Colors.grey,
         ),
         child: Text(
           message.text,

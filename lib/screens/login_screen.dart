@@ -88,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 CustomTextFormField(
                   hint: 'Password',
+                  obsecure: true,
                   onChanged: (data) {
                     password = data;
                   },
@@ -103,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       setState(() {});
                       try {
                         await signInUser();
-                        Navigator.pushNamed(context, ChatScreen.id);
+                        Navigator.pushNamed(context, ChatScreen.id , arguments: email);
                         // showSnackBar(context, 'Success');
                         // print(context);
                       } on FirebaseAuthException catch (e) {
